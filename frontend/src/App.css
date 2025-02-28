@@ -1,0 +1,140 @@
+#root {
+  margin: 0 auto;
+  text-align: center;
+  color: #F1F5F9;
+  overflow-x: hidden;
+  background: #0F172A;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 20% 80%;
+  font-size: 1rem;
+  height: 100vh;
+  width: 100vw;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 3rem 2rem;
+  border-right: 1px solid #ccc;
+  position: sticky;
+  justify-content: center;
+}
+
+.input {
+  width: 80%;
+  padding: 8px 16px;
+  border: 2px solid #ccc;
+  border-radius: 16px;
+  outline: none;
+  color: black;
+  font-size: 1rem;
+}
+
+.input:focus {
+  border-color: #0077ff;
+}
+
+.button {
+  background-color: #0077ff;
+  color: white;
+  border-radius: 50px;
+  border: none;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  outline: none;
+}
+
+.button:hover {
+  background-color: #0066cc;
+  outline: none;
+}
+
+.button:disabled {
+  background: #ccc;
+}
+
+/* progress bar */
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* media container related styles */
+.container {
+  width: 100%;
+  max-width: 1568px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+  padding: 20px;
+}
+
+.grid-item {
+  position: relative;
+  width: 100%;
+  background-color: #1E293B;
+  /* Darker card background */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  aspect-ratio: 1/1;
+}
+
+.grid-item::before {
+  content: "";
+  display: block;
+  padding-top: 100%;
+}
+
+.grid-item-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.grid-item video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+}
