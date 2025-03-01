@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
+import indexedDBService from "../db";
 import AssetsGrid from "./AssetsGrid";
 
 const MediaGallery = ({ folderId }) => {
@@ -36,7 +37,12 @@ const MediaGallery = ({ folderId }) => {
       setTotalItems(data.totalFiles);
       if (data.paginatedFiles.length > 0) {
         // TODO: remove duplicates from assets
-        setAssets(prev => [...prev, ...data.paginatedFiles]);
+        // TODO: save media in indexedDB
+
+        const processedMedia = await indexedDBService.processMediaURLs(data.paginatedFiles);
+        setAssets(prev => [...prev, ...processedMedia]);
+
+        // setAssets(prev => [...prev, ...data.paginatedFiles]);
       }
       return data.paginatedFiles;
     } catch (error) {

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeGrid as Grid } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
@@ -29,6 +29,7 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
   const MIN_COLUMN_WIDTH = 250; // Minimum width for an asset
 
   const Cell = ({ columnIndex, rowIndex, style, data }) => {
+    const [isHovered, setIsHovered] = useState(false);
     const { items, columns, leftOffset } = data;
 
     const assetIndex = rowIndex * columns + columnIndex;
@@ -55,7 +56,7 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
       <div style={adjustedStyle} key={asset.name}>
         {!isVideo ? (
           <img
-            src={asset.url}
+            src={asset.blobUrl || asset.url}
             alt={`Asset ${assetIndex}`}
             style={{
               width: "100%",
@@ -66,25 +67,37 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
             loading="lazy"
           />
         ) : (
-          <video
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: 8
-            }}
-            onMouseEnter={(e) => e.target.play()}
-            onMouseLeave={(e) => {
-              e.target.pause();
-              e.target.currentTime = 0;
-            }}
-            muted
-            loop
-            preload="metadata"
-          >
-            <source src={asset.url} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          <>
+            {/* TODO: Add play button over video instead of play text */}
+            {!isHovered && <div style={{
+              position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)", borderRadius: 8
+            }}>
+              Play
+            </div>}
+            <video
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: 8
+              }}
+              onMouseEnter={(e) => {
+                e.target.play()
+                setIsHovered(true)
+              }}
+              onMouseLeave={(e) => {
+                e.target.pause();
+                e.target.currentTime = 0;
+                setIsHovered(false)
+              }}
+              muted
+              loop
+              preload="metadata"
+            >
+              <source src={asset.blobUrl || asset.url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </>
         )}
       </div>
     );
