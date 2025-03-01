@@ -1,11 +1,27 @@
+import { useCallback } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeGrid as Grid } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 
 const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => {
-  const itemCount = hasNextPage ? items.length + 1 : items.length;
-  const loadMoreItems = isNextPageLoading ? () => { } : loadNextPage;
-  const isItemLoaded = index => !hasNextPage || index < items.length;
+  const itemCount = (items.length > 0 && hasNextPage) ? items.length + 1 : items.length;
+
+  // const handleLoadMoreItems = isNextPageLoading ? () => { } : loadNextPage;
+  // const isItemLoaded = index => !hasNextPage || index < items.length;
+
+
+  const isItemLoaded = useCallback(index => {
+    return !hasNextPage || index < items.length;
+  }, [hasNextPage, items.length]);
+
+  const handleLoadMoreItems = useCallback(() => {
+    if (!isNextPageLoading && hasNextPage && items.length > 0) {
+      return loadNextPage();
+    }
+    return Promise.resolve();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNextPageLoading, hasNextPage, loadNextPage]);
+
 
   // Constants
   const COLUMN_GAP = 16;
@@ -79,7 +95,7 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
       <AutoSizer>
         {({ height, width }) => {
           // Calculate proper grid dimensions accounting for gaps
-          const columns = Math.max(Math.floor((width + COLUMN_GAP) / (MIN_COLUMN_WIDTH +  COLUMN_GAP)), 1);
+          const columns = Math.max(Math.floor((width + COLUMN_GAP) / (MIN_COLUMN_WIDTH + COLUMN_GAP)), 1);
           // column width based on available space
           const columnWidth = Math.min(
             MIN_COLUMN_WIDTH,
@@ -97,11 +113,26 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
             <InfiniteLoader
               isItemLoaded={isItemLoaded}
               itemCount={itemCount}
-              loadMoreItems={loadMoreItems}
-              threshold={10} // Load more items earlier for smoother scrolling
+              // loadMoreItems={loadMoreItems}
+              loadMoreItems={handleLoadMoreItems}
+              threshold={3} // Load more items earlier for smoother scrolling, in case of grid if we reach the end of the grid, we want to load more items before reaching the end threshold defines number of rows and it starts fetching 
             >
-              {({ onItemsRendered, ref }) => (
-                <Grid
+              {({ onItemsRendered, ref }) => {
+
+                const handleItemsRendered = gridProps => {
+                  const { visibleRowStartIndex, visibleRowStopIndex } = gridProps;
+
+                  // Convert row indices to item indices
+                  const startIndex = visibleRowStartIndex * columns;
+                  const stopIndex = Math.min((visibleRowStopIndex + 1) * columns - 1, itemCount - 1);
+
+                  onItemsRendered({
+                    visibleStartIndex: startIndex,
+                    visibleStopIndex: stopIndex,
+                  });
+                };
+
+                return (<Grid
                   height={height}
                   // height={width}
                   width={width}
@@ -109,20 +140,18 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
                   columnWidth={columnWidth + COLUMN_GAP}
                   rowCount={rowCount}
                   rowHeight={rowHeight + ROW_GAP}
-                  onItemsRendered={({ visibleRowStartIndex, visibleRowStopIndex }) =>
-                    onItemsRendered({
-                      startIndex: visibleRowStartIndex * columns,
-                      stopIndex: (visibleRowStopIndex + 1) * columns - 1,
-                    })
-                  }
+                  onItemsRendered={handleItemsRendered}
                   ref={ref}
                   itemData={{ items, columns, leftOffset }}
-                  overscanRowCount={10} // Increase overscan for smoother scrolling
+                  overscanRowCount={2} // Increase overscan for smoother scrolling. renders 2 extra rows on top and bottom outside of visible viewport area to make scrolling smoother
                   style={{ overflow: "auto" }}
+                  useIsScrolling
                 >
                   {Cell}
                 </Grid>
-              )}
+                )
+              }
+              }
             </InfiniteLoader>
           );
         }}

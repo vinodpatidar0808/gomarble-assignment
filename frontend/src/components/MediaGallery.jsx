@@ -2,21 +2,20 @@ import axios from "axios";
 import { useCallback, useEffect, useRef, useState } from "react";
 import AssetsGrid from "./AssetsGrid";
 
-const MediaGallery = ({ folderId, totalAssets, completedAssets }) => {
+const MediaGallery = ({ folderId }) => {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const pageRef = useRef(1);
-  const isMountedRef = useRef(true);
-  console.log("MediaGallery2")
+  const hasCalledInitialLoad = useRef(false);
+  // const isMountedRef = useRef(true);
+
 
   // Use the provided folderId or a default value
   const effectiveFolderId = folderId || "1NOE6E0qXonBWPwsi2gGql0Wm1Cc54D5g";
 
   const fetchAssets = useCallback(async () => {
     if (loading) return [];
-
-    console.log("fetchAssets", effectiveFolderId, pageRef.current);
     setLoading(true);
     try {
       const response = await axios.get(
@@ -34,18 +33,23 @@ const MediaGallery = ({ folderId, totalAssets, completedAssets }) => {
 
       const { data } = response;
       pageRef.current += 1;
-      console.log("data: ", data)
       setTotalItems(data.totalFiles);
+      if (data.paginatedFiles.length > 0) {
+        // TODO: remove duplicates from assets
+        setAssets(prev => [...prev, ...data.paginatedFiles]);
+      }
       return data.paginatedFiles;
     } catch (error) {
       console.error("Error fetching assets:", error);
       return [];
     } finally {
-      if (isMountedRef.current) {
-        setLoading(false);
-      }
+      // if (isMountedRef.current) {
+      //   setLoading(false);
+      // }
+      setLoading(false);
     }
   }, [effectiveFolderId, loading]);
+
 
   useEffect(() => {
     // Reset state when folderId changes
@@ -53,24 +57,20 @@ const MediaGallery = ({ folderId, totalAssets, completedAssets }) => {
     pageRef.current = 1;
 
     // Initial load
-    loadMoreItems(0, 20);
+    // loadMoreItems(0, 20);
+    if (!hasCalledInitialLoad.current) {
+      hasCalledInitialLoad.current = true;
+      // loadMoreItems();
+      fetchAssets()
+    }
 
-    // Cleanup function to prevent state updates after unmount
-    return () => {
-      isMountedRef.current = false;
-    };
+    // // Cleanup function to prevent state updates after unmount
+    // return () => {
+    //   isMountedRef.current = false;
+    // };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderId]);
 
-  const loadMoreItems = async (startIndex, stopIndex) => {
-    const newAssets = await fetchAssets();
-
-    if (newAssets.length > 0) {
-      setAssets(prev => [...prev, ...newAssets]);
-    }
-  };
-
-  console.log("assets: ", assets.length)
-  console.log("totalItems: ", totalItems)
   // Show a loading state while initially fetching data
   if (assets.length === 0 && loading) {
     return <div>Loading assets...</div>;
@@ -83,13 +83,13 @@ const MediaGallery = ({ folderId, totalAssets, completedAssets }) => {
   }
 
   return (
-    <div style={{width: "100%", height: "100%", display: "flex", justifyContent: "center", position:"relative"}}>
-      <div style={{ width: "100%", height: "100%", overflow:"hidden" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", justifyContent: "center", position: "relative" }}>
+      <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
         <AssetsGrid
           hasNextPage={totalItems > assets.length}
-          isNextPageLoading={loading}
+          isNextPageLoading={false}
           items={assets}
-          loadNextPage={loadMoreItems}
+          loadNextPage={fetchAssets}
         />
       </div>
     </div>
