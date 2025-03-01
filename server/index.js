@@ -47,13 +47,10 @@ wss.on("connection", (ws) => {
 app.get("/api/assets/:folderId", (req, res) => {
   const { folderId } = req.params;
   let { page, limit } = req.query;
-  // console.log("folderId", folderId)
-  // console.log("page", page)
-  // console.log("limit", limit)
 
-  // if (!folderId) {
-  //   return res.status(400).json({ error: "Folder ID is required" });
-  // }
+  if (!folderId) {
+    return res.status(400).json({ error: "Folder ID is required" });
+  }
 
   // Convert query params to integers with defaults
   page = parseInt(page) || 1;
@@ -82,7 +79,7 @@ app.get("/api/assets/:folderId", (req, res) => {
     files = files.map(file => ({
       name: file,
       url: `${process.env.BACKEND_URL}/assets/${folderId}/${file}`,
-      createdAt: fs.statSync(path.join(folderPath, file)).birthtimeMs
+      createdAt: fs.statSync(path.join(folderPath, file)).birthtime
     })).sort((a, b) => a.createdAt - b.createdAt); // Oldest first
 
     // Implement pagination
