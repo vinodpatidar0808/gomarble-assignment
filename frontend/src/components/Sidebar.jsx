@@ -68,7 +68,7 @@ const Sidebar = ({ progress, setProgress, assetsRef }) => {
       ></textarea>
       <button disabled={(!validDriveUrl(url) || loading)} className="button" onClick={() => handleSubmit(url)}>Send</button>
       <ProgressBar completed={progress.completed ?? 0} total={progress.total ?? 0} />
-      {error && <p style={{ color: "red" }}>Failed to download file from drive, {error}</p>}
+      {error && <p style={{ color: "red" }}>Failed to download files from drive, {error}</p>}
     </div>
   )
 }
