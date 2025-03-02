@@ -12,6 +12,7 @@ class IndexedDBService {
   constructor(indexDBName, storeName) {
     this.#indexDBName = indexDBName
     this.#storeName = storeName
+    this.createIndexedDB()
   }
 
   async createIndexedDB() {
