@@ -4,15 +4,29 @@ import MediaGallery from "./components/MediaGallery";
 import Sidebar from "./components/Sidebar";
 
 function App() {
-  const [progress, setProgress] = useState({ completed: 0, total: 0 });
+  const [progress, setProgress] = useState({ completed: 0, total: 0, folderId: "" });
   const assetsRef = useRef([]);
-  // const folderIds = localStorage.getItem("folderIds") ? JSON.parse(localStorage.getItem("folderIds")) : [];
+  const [currentFolderId, setCurrentFolderId] = useState("");
+  const processedFolderIdsRef = useRef([]);
 
   return (
     <>
       <main className="app">
-        <Sidebar progress={progress} setProgress={setProgress} assetsRef={assetsRef} />
-        <MediaGallery folderId={""} totalAssets={progress.total} completedAssets={progress.completed} realtimeAssets={assetsRef.current} realtime={true} />
+        <Sidebar
+          progress={progress}
+          setProgress={setProgress}
+          assetsRef={assetsRef}
+          setFolderId={setCurrentFolderId}
+          processedFolderIdsRef={processedFolderIdsRef}
+        />
+
+        <MediaGallery
+          folderId={currentFolderId}
+          totalAssets={progress.total}
+          completedAssets={progress.completed}
+          realtimeAssets={assetsRef.current}
+          realtime={currentFolderId === progress.folderId}
+        />
       </main>
 
     </>

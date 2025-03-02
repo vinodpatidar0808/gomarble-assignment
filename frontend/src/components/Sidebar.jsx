@@ -3,7 +3,7 @@ import { useState } from "react"
 import { validDriveUrl } from "../utils"
 import ProgressBar from "./Progressbar"
 
-const Sidebar = ({ progress, setProgress, assetsRef }) => {
+const Sidebar = ({ progress, setProgress, assetsRef, setFolderId, processedFolderIdsRef }) => {
   const [url, setUrl] = useState("")
   const [ws, setWs] = useState(null);
   const [loading, setLoading] = useState(false)
@@ -25,11 +25,19 @@ const Sidebar = ({ progress, setProgress, assetsRef }) => {
           assetsRef.current.push(data.file)
           setProgress({
             completed: data.completedFiles,
-            total: data.totalFiles
+            total: data.totalFiles,
+            folderId: data.folderId
           });
+
+          setFolderId(data.folderId)
+
           if (data.completedFiles === data.totalFiles) {
+            if (data.folderId && !processedFolderIdsRef.current.includes(data.folderId)) {
+              processedFolderIdsRef.current = [...processedFolderIdsRef.current, data.folderId];
+            }
             // enable button and also close current websocket connection
             setLoading(false)
+            setUrl("")
             socket.close()
           }
         } else if (data.isError) {
@@ -67,6 +75,16 @@ const Sidebar = ({ progress, setProgress, assetsRef }) => {
         onChange={handleChange}
       ></textarea>
       <button disabled={(!validDriveUrl(url) || loading)} className="button" onClick={() => handleSubmit(url)}>Send</button>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
+        {processedFolderIdsRef.current?.length > 0 &&
+          processedFolderIdsRef.current.map((folderId) => (
+            <button onClick={() => setFolderId(folderId)} key={folderId} style={{ width: "100%", background: "#0077ff", color: "white", wordBreak: "break-all" }}>{folderId}</button>))
+        }
+
+      </div>
+
+
       <ProgressBar completed={progress.completed ?? 0} total={progress.total ?? 0} />
       {error && <p style={{ color: "red" }}>Failed to download files from drive, {error}</p>}
     </div>

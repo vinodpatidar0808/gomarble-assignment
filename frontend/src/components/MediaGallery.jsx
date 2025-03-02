@@ -6,7 +6,7 @@ import AssetsGrid from "./AssetsGrid";
 const MediaGallery = ({ folderId, realtime, realtimeAssets, totalAssets }) => {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [totalItems, setTotalItems] = useState(0);
+  const [totalItems, setTotalItems] = useState(totalAssets ?? 0);
   const pageRef = useRef(1);
   const hasCalledInitialLoad = useRef(false);
   const timerRef = useRef(null);
@@ -40,15 +40,33 @@ const MediaGallery = ({ folderId, realtime, realtimeAssets, totalAssets }) => {
   }, [realtime, realtimeAssets, assets.length, totalAssets]);
 
 
-  // Use the provided folderId or a default value
-  const effectiveFolderId = folderId || "1NOE6E0qXonBWPwsi2gGql0Wm1Cc54D5g";
+  useEffect(() => {
+    // Reset state when folderId changes
+    setAssets([]);
+    pageRef.current = 1;
+    // hasCalledInitialLoad.current = false;
+
+    // Initial load
+    // loadMoreItems(0, 20);
+    if (!hasCalledInitialLoad.current && !realtime) {
+      hasCalledInitialLoad.current = true;
+      // loadMoreItems();
+      fetchAssets()
+    }
+
+    // // Cleanup function to prevent state updates after unmount
+    // return () => {
+    //   isMountedRef.current = false;
+    // };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folderId]);
 
   const fetchAssets = useCallback(async () => {
     if (loading) return [];
     setLoading(true);
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/assets/${effectiveFolderId}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/assets/${folderId}`,
         {
           params: {
             page: pageRef.current,
@@ -82,28 +100,10 @@ const MediaGallery = ({ folderId, realtime, realtimeAssets, totalAssets }) => {
       // }
       setLoading(false);
     }
-  }, [effectiveFolderId, loading, realtime]);
+  }, [folderId, loading, realtime]);
 
 
-  useEffect(() => {
-    // Reset state when folderId changes
-    setAssets([]);
-    pageRef.current = 1;
 
-    // Initial load
-    // loadMoreItems(0, 20);
-    if (!hasCalledInitialLoad.current && !realtime) {
-      hasCalledInitialLoad.current = true;
-      // loadMoreItems();
-      fetchAssets()
-    }
-
-    // // Cleanup function to prevent state updates after unmount
-    // return () => {
-    //   isMountedRef.current = false;
-    // };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [folderId]);
 
   // Show a loading state while initially fetching data
   if (assets.length === 0 && loading) {
