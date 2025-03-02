@@ -5,7 +5,7 @@ require("dotenv").config();
 
 
 // Google api limits number of request, which fails the download process, so created multiple keys which will be used in a round robin fashion
-const GOOGLE_API_KEYS = [process.env.GOOGLE_API_KEYprocess.env.GOOGLE_API_KEY_1, process.env.GOOGLE_API_KEY_2, process.env.GOOGLE_API_KEY_3 ];
+const GOOGLE_API_KEYS = [process.env.GOOGLE_API_KEY, process.env.GOOGLE_API_KEY_1, process.env.GOOGLE_API_KEY_2, process.env.GOOGLE_API_KEY_3 ];
 let counter = 0;
 const totalKeys = 4; // when using only one key, set this to 1
 
