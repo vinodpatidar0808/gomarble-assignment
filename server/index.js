@@ -120,6 +120,8 @@ app.post("/api/submit", async (req, res) => {
   const totalFiles = files.length;
   let completedFiles = 0;
   files.forEach((file) => {
+    // Download only images and videos
+    //TODO: need to store the identifier for current user/client there can be multiple clients connected
     if (file.mimeType.startsWith("image/") || file.mimeType.startsWith("video/")) {
       downloadFile(DOWNLOAD_FOLDER, folderId, file, (progressData) => {
         completedFiles++;
