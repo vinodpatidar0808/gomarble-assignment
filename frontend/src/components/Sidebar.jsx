@@ -1,9 +1,9 @@
+import axios from "axios"
 import { useState } from "react"
 import { validDriveUrl } from "../utils"
 import ProgressBar from "./Progressbar"
-import axios from "axios"
 
-const Sidebar = ({progress, setProgress }) => {
+const Sidebar = ({ progress, setProgress, assetsRef }) => {
   const [url, setUrl] = useState("")
   const [ws, setWs] = useState(null);
   const [loading, setLoading] = useState(false)
@@ -14,19 +14,23 @@ const Sidebar = ({progress, setProgress }) => {
       if (ws) {
         ws.close()
       }
+      assetsRef.current = []
       const socket = new WebSocket(import.meta.env.VITE_SOCKET_URL);
 
       socket.onopen = () => console.log("WebSocket connected");
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.file) {
-          // setAssets((prevAssets) => [...prevAssets, data.file]);
-          // assetsRef.current.push(data.file)
-          // console.log(assetsRef.current)
+          assetsRef.current.push(data.file)
           setProgress({
             completed: data.completedFiles,
             total: data.totalFiles
           });
+          if (data.completedFiles === data.totalFiles) {
+            // enable button and also close current websocket connection
+            setLoading(false)
+            socket.close()
+          }
         }
       };
 

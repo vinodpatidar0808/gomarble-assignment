@@ -3,13 +3,41 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import indexedDBService from "../db";
 import AssetsGrid from "./AssetsGrid";
 
-const MediaGallery = ({ folderId }) => {
+const MediaGallery = ({ folderId, realtime, realtimeAssets, totalAssets }) => {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
   const pageRef = useRef(1);
   const hasCalledInitialLoad = useRef(false);
-  // const isMountedRef = useRef(true);
+  const timerRef = useRef(null);
+
+  const storeAssetsInIndexedDB = async (assets) => {
+    const processedMedia = await indexedDBService.processMediaURLs(assets);
+    setAssets(prev => [...prev, ...processedMedia]);
+  }
+
+
+  useEffect(() => {
+    // Clear any existing interval first
+    clearInterval(timerRef.current);
+
+    // Only start interval if realtime is true and we haven't loaded all assets yet
+    if (realtime && realtimeAssets.length > 0 && assets.length < totalAssets) {
+      timerRef.current = setInterval(() => {
+        storeAssetsInIndexedDB(realtimeAssets);
+
+        // Check if we've reached the total assets and clear if needed
+        if (assets.length >= totalAssets) {
+          clearInterval(timerRef.current);
+        }
+      }, 500);
+    }
+
+    // Cleanup function
+    return () => {
+      clearInterval(timerRef.current);
+    };
+  }, [realtime, realtimeAssets, assets.length, totalAssets]);
 
 
   // Use the provided folderId or a default value
@@ -54,7 +82,7 @@ const MediaGallery = ({ folderId }) => {
       // }
       setLoading(false);
     }
-  }, [effectiveFolderId, loading]);
+  }, [effectiveFolderId, loading, realtime]);
 
 
   useEffect(() => {
@@ -64,7 +92,7 @@ const MediaGallery = ({ folderId }) => {
 
     // Initial load
     // loadMoreItems(0, 20);
-    if (!hasCalledInitialLoad.current) {
+    if (!hasCalledInitialLoad.current && !realtime) {
       hasCalledInitialLoad.current = true;
       // loadMoreItems();
       fetchAssets()
