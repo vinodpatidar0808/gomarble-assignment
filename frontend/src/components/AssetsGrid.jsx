@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeGrid as Grid } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
@@ -29,10 +29,37 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
   const MIN_COLUMN_WIDTH = 250; // Minimum width for an asset
 
   const Cell = ({ columnIndex, rowIndex, style, data }) => {
+    const videoRef = useRef(null);
     const [isHovered, setIsHovered] = useState(false);
     const { items, columns, leftOffset } = data;
 
     const assetIndex = rowIndex * columns + columnIndex;
+
+    // use debouncing, if frequent hover is causing issue,
+    const handlePlay = useCallback(() => {
+      const video = videoRef.current;
+      if (video) {
+        video
+          .play()
+          .catch((error) => {
+            if (error.name !== "AbortError") {
+              console.error("Video play error:", error);
+            }
+          });
+        setIsHovered(true);
+      }
+    }, [setIsHovered]);
+
+  
+    const handlePause = useCallback(() => {
+      const video = videoRef.current;
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+        setIsHovered(false);
+      }
+    }, [setIsHovered]);
+
 
     // Return null for cells beyond the data range
     if (assetIndex >= items.length) return null;
@@ -75,26 +102,20 @@ const AssetsGrid = ({ hasNextPage, isNextPageLoading, items, loadNextPage }) => 
               Play
             </div>}
             <video
+              ref={videoRef}
               style={{
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
                 borderRadius: 8
               }}
-              onMouseEnter={(e) => {
-                e.target.play()
-                setIsHovered(true)
-              }}
-              onMouseLeave={(e) => {
-                e.target.pause();
-                e.target.currentTime = 0;
-                setIsHovered(false)
-              }}
+              onMouseEnter={handlePlay}
+              onMouseLeave={handlePause}
               muted
               loop
               preload="metadata"
             >
-              <source src={asset.blobUrl || asset.url} type="video/mp4" />
+              <source src={asset.blobUrl || asset.url} type="video/mp4" alt={`Asset ${assetIndex}`} />
               Your browser does not support the video tag.
             </video>
           </>
