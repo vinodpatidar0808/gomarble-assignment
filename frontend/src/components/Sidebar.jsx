@@ -7,6 +7,7 @@ const Sidebar = ({ progress, setProgress, assetsRef }) => {
   const [url, setUrl] = useState("")
   const [ws, setWs] = useState(null);
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   const handleSubmit = async (url) => {
     setLoading(true)
@@ -20,7 +21,7 @@ const Sidebar = ({ progress, setProgress, assetsRef }) => {
       socket.onopen = () => console.log("WebSocket connected");
       socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (data.file) {
+        if (data.file && !data.isError) {
           assetsRef.current.push(data.file)
           setProgress({
             completed: data.completedFiles,
@@ -31,6 +32,9 @@ const Sidebar = ({ progress, setProgress, assetsRef }) => {
             setLoading(false)
             socket.close()
           }
+        } else if (data.isError) {
+          setLoading(false)
+          setError(data.error)
         }
       };
 
@@ -64,6 +68,7 @@ const Sidebar = ({ progress, setProgress, assetsRef }) => {
       ></textarea>
       <button disabled={(!validDriveUrl(url) || loading)} className="button" onClick={() => handleSubmit(url)}>Send</button>
       <ProgressBar completed={progress.completed ?? 0} total={progress.total ?? 0} />
+      {error && <p style={{ color: "red" }}>Failed to download file from drive, {error}</p>}
     </div>
   )
 }
