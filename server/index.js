@@ -126,7 +126,9 @@ app.post("/api/submit", async (req, res) => {
       downloadFile(DOWNLOAD_FOLDER, folderId, file, (progressData) => {
         completedFiles++;
         wss?.clients?.forEach((client) => {
-          client.send(JSON.stringify({ totalFiles, completedFiles, file: { ...progressData } }));
+          const { id, name, url, error, mimeType, isError } = progressData;
+          const file = { id, name, url, mimeType };
+          client.send(JSON.stringify({ totalFiles, completedFiles, file, error, isError }));
         });
       });
     }

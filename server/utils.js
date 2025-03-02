@@ -1,7 +1,14 @@
 const axios = require("axios");
 const fs = require('fs')
-const path = require('path')
+const path = require('path');
 require("dotenv").config();
+
+
+// Google api limits number of request, which fails the download process, so created multiple keys which will be used in a round robin fashion
+const GOOGLE_API_KEYS = [process.env.GOOGLE_API_KEY_1, process.env.GOOGLE_API_KEY_2, process.env.GOOGLE_API_KEY_3, process.env.GOOGLE_API_KEY];
+let counter = 0;
+const totalKeys = 4;
+
 
 // const DOWNLOAD_FOLDER = path.join(__dirname, "public", "assets");
 
@@ -31,7 +38,10 @@ const downloadFile = async (DOWNLOAD_FOLDER, folderId, file, callback) => {
   const { id, name, mimeType } = file;
   // this will only work for folder which are publicly shared, downloading content of private folder will require authentication token from user
 
-  const fileUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${process.env.GOOGLE_API_KEY}`
+  const apiKey = GOOGLE_API_KEYS[counter % totalKeys];
+  counter++;
+
+  const fileUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${apiKey}`
   const filePath = path.join(DOWNLOAD_FOLDER, name);
   try {
 
@@ -47,17 +57,17 @@ const downloadFile = async (DOWNLOAD_FOLDER, folderId, file, callback) => {
       return new Promise((resolve, reject) => {
         writer.on("finish", () => {
           // TODO: check filepath after deploying 
-          callback({ id: id, name: name, mimeType: mimeType, url: `assets/${folderId}/${name}` });
+          callback({ id: id, name: name, mimeType: mimeType, url: `assets/${folderId}/${name}`, error: null, isError: false });
           resolve(name);
         });
         writer.on("error", reject);
       });
     } else {
-      // TODO: check file path after deploying
-      callback({ id: id, name: name, mimeType: mimeType, url: `${process.env.BACKEND_URL}/assets/${folderId}/${name}` });
+      callback({ id: id, name: name, mimeType: mimeType, url: `${process.env.BACKEND_URL}/assets/${folderId}/${name}`, error: null, isError: false });
     }
   } catch (error) {
     console.error(`Error downloading ${name}:`, error.message);
+    callback({ id: id, name: name, mimeType: mimeType, error: error.message, isError: true });
     return null;
   }
 };
