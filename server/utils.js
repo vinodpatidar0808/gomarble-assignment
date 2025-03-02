@@ -57,7 +57,7 @@ const downloadFile = async (DOWNLOAD_FOLDER, folderId, file, callback) => {
       return new Promise((resolve, reject) => {
         writer.on("finish", () => {
           // TODO: check filepath after deploying 
-          callback({ id: id, name: name, mimeType: mimeType, url: `assets/${folderId}/${name}`, error: null, isError: false });
+          callback({ id: id, name: name, mimeType: mimeType, url: `${process.env.BACKEND_URL}/assets/${folderId}/${name}`, error: null, isError: false });
           resolve(name);
         });
         writer.on("error", reject);
