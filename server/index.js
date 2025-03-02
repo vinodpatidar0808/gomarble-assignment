@@ -128,7 +128,7 @@ app.post("/api/submit", async (req, res) => {
         wss?.clients?.forEach((client) => {
           const { id, name, url, error, mimeType, isError } = progressData;
           const file = { id, name, url, mimeType };
-          client.send(JSON.stringify({ totalFiles, completedFiles, file, error, isError }));
+          client.send(JSON.stringify({ totalFiles, completedFiles, folderId, file, error, isError }));
         });
       });
     }

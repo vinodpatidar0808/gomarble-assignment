@@ -41,7 +41,7 @@ const downloadFile = async (DOWNLOAD_FOLDER, folderId, file, callback) => {
   const apiKey = GOOGLE_API_KEYS[counter % totalKeys];
   counter++;
 
-  const fileUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${apiKey}`
+  const fileUrl = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&fields=id,name,mimeType&key=${apiKey}`
   const filePath = path.join(DOWNLOAD_FOLDER, name);
   try {
 
@@ -49,6 +49,10 @@ const downloadFile = async (DOWNLOAD_FOLDER, folderId, file, callback) => {
       const response = await axios({
         url: fileUrl,
         method: "GET",
+        // headers: {
+        //   'Accept': 'application/json',
+        //   'Authorization': `Bearer ${apiKey}`
+        // },
         responseType: "stream"
       });
 
@@ -71,6 +75,11 @@ const downloadFile = async (DOWNLOAD_FOLDER, folderId, file, callback) => {
     return null;
   }
 };
+
+
+
+
+
 
 
 // TODO: experiment with this approach  to download files from google drive using OAuth2.0.
